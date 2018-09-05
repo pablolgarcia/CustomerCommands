@@ -77,8 +77,8 @@ class UpdatePasswordCommand extends Command
     private function getOptionsList()
     {
         return [
-            new InputOption($this::KEY_EMAIL, null, InputOption::VALUE_REQUIRED, '(Required) Admin user'),
-            new InputOption($this::KEY_PASSWORD, null, InputOption::VALUE_REQUIRED, '(Required) Admin password')
+            new InputOption($this::KEY_EMAIL, null, InputOption::VALUE_REQUIRED, '(Required) Customer email'),
+            new InputOption($this::KEY_PASSWORD, null, InputOption::VALUE_REQUIRED, '(Required) Customer password')
         ];
     }
 
