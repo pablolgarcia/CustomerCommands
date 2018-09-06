@@ -3,7 +3,8 @@
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">
-                <item name="customerUpdatePassword" xsi:type="object">Rapicart\CustomerCommands\Console\Command\UpdatePasswordCommand</item>
+                <item name="customerUpdatePasswordCommand" xsi:type="object">Rapicart\CustomerCommands\Console\Command\UpdatePasswordCommand</item>
+                <item name="customerCreateCommand" xsi:type="object">Rapicart\CustomerCommands\Console\Command\CustomerCreateCommand</item>
             </argument>
         </arguments>
     </type>
