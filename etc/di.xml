@@ -5,6 +5,9 @@
             <argument name="commands" xsi:type="array">
                 <item name="customerUpdatePasswordCommand" xsi:type="object">Rapicart\CustomerCommands\Console\Command\UpdatePasswordCommand</item>
                 <item name="customerCreateCommand" xsi:type="object">Rapicart\CustomerCommands\Console\Command\CustomerCreateCommand</item>
+                <item name="customerGroupCreateCommand" xsi:type="object">Rapicart\CustomerCommands\Console\Command\CustomerGroupCreateCommand</item>
+                <item name="customerGroupListCommand" xsi:type="object">Rapicart\CustomerCommands\Console\Command\CustomerGroupListCommand</item>
+                <item name="customerGroupDeleteCommand" xsi:type="object">Rapicart\CustomerCommands\Console\Command\CustomerGroupDeleteCommand</item>
             </argument>
         </arguments>
     </type>

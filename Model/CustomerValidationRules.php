@@ -21,13 +21,14 @@ use Magento\Framework\Validator\StringLength;
  */
 class CustomerValidationRules
 {
-    /**
-     * Minimum length of customer password
-     */
+    /** Minimum length of customer password */
     const MIN_PASSWORD_LENGTH = 7;
 
+    /** Maximum length of customer group code */
+    const MAX_CUSTOMER_GROUP_LENGTH = 32;
+
     /**
-     * Adds validation rule for customer email
+     * Adds validation rules for customer email
      * @param \Magento\Framework\Validator\DataObject $validator
      * @return \Magento\Framework\Validator\DataObject
      */
@@ -46,14 +47,14 @@ class CustomerValidationRules
     }
 
     /**
-     * Adds validation rule for user password
+     * Adds validation rules for user password
      * @param \Magento\Framework\Validator\DataObject $validator
      * @return \Magento\Framework\Validator\DataObject
      */
     public function addPasswordRules(\Magento\Framework\Validator\DataObject $validator)
     {
         $passwordNotEmpty = new NotEmpty();
-        $passwordNotEmpty->setMessage(__('Password is required field.'), NotEmpty::IS_EMPTY);
+        $passwordNotEmpty->setMessage(__('Password is a required field.'), NotEmpty::IS_EMPTY);
         $minPassLength = self::MIN_PASSWORD_LENGTH;
         $passwordLength = new StringLength(['min' => $minPassLength, 'encoding' => 'UTF-8']);
         $passwordLength->setMessage(
@@ -74,6 +75,33 @@ class CustomerValidationRules
         )->addRule(
             $passwordChars,
             'password'
+        );
+
+        return $validator;
+    }
+
+    /**
+     * Adds validation rules for customer group
+     * @param \Magento\Framework\Validator\DataObject $validator
+     * @return \Magento\Framework\Validator\DataObject
+     */
+    public function addCustomerGroupRules(\Magento\Framework\Validator\DataObject $validator)
+    {
+        $nameNotEmpty = new NotEmpty();
+        $nameNotEmpty->setMessage(__('Group name is a required field.'), NotEmpty::IS_EMPTY);
+        $maxGroupNameLength = self::MAX_CUSTOMER_GROUP_LENGTH;
+        $groupNameLength = new StringLength(['max' => $maxGroupNameLength, 'encoding' => 'UTF-8']);
+        $groupNameLength->setMessage(
+            __('Maximum length must be less than %1 characters.', $maxGroupNameLength),
+            \Zend_Validate_StringLength::TOO_LONG
+        );
+
+        $validator->addRule(
+            $nameNotEmpty,
+            'group_code'
+        )->addRule(
+            $groupNameLength,
+            'group_code'
         );
 
         return $validator;

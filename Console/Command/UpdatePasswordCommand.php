@@ -77,8 +77,8 @@ class UpdatePasswordCommand extends Command
     private function getOptionsList()
     {
         return [
-            new InputOption($this::KEY_EMAIL, null, InputOption::VALUE_REQUIRED, '(Required) Customer email'),
-            new InputOption($this::KEY_PASSWORD, null, InputOption::VALUE_REQUIRED, '(Required) Customer password')
+            new InputOption(self::KEY_EMAIL, null, InputOption::VALUE_REQUIRED, '(Required) Customer email'),
+            new InputOption(self::KEY_PASSWORD, null, InputOption::VALUE_REQUIRED, '(Required) Customer password')
         ];
     }
 
@@ -97,8 +97,8 @@ class UpdatePasswordCommand extends Command
             return \Magento\Framework\Console\Cli::RETURN_FAILURE;
         }
 
-        $email = $input->getOption($this::KEY_EMAIL);
-        $password = $input->getOption($this::KEY_PASSWORD);
+        $email = $input->getOption(self::KEY_EMAIL);
+        $password = $input->getOption(self::KEY_PASSWORD);
 
         try {
             $customer = $this->customerRepository->get($email);
@@ -120,8 +120,8 @@ class UpdatePasswordCommand extends Command
     {
         $errors = [];
         $data = new \Magento\Framework\DataObject();
-        $data->setEmail($input->getOption($this::KEY_EMAIL))
-            ->setPassword($input->getOption($this::KEY_PASSWORD));
+        $data->setEmail($input->getOption(self::KEY_EMAIL))
+            ->setPassword($input->getOption(self::KEY_PASSWORD));
 
         $validator = new \Magento\Framework\Validator\DataObject;
         $this->validationRules->addEmailRules($validator);
