@@ -71,7 +71,7 @@ class CustomerGroupCreateCommand extends Command
     protected function configure()
     {
         $this->setName('customer:group:create')
-            ->setDescription('Create or update a customer group')
+            ->setDescription('Create a customer group')
             ->setDefinition($this->getOptionsList());
     }
 

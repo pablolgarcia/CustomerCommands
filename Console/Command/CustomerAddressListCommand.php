@@ -23,6 +23,7 @@ class CustomerAddressListCommand extends Command
 {
     /** data keys */
     const KEY_EMAIL = 'customer-email';
+    const KEY_WEBSITE_ID = 'customer-website-id';
 
     /** @var \Rapicart\CustomerCommands\Model\AddressValidationRules  */
     protected $validationRules;
@@ -36,12 +37,19 @@ class CustomerAddressListCommand extends Command
     /** @var \Magento\Customer\Api\Data\AddressInterfaceFactory  */
     protected $addressFactory;
 
+    /**
+     * CustomerAddressListCommand constructor.
+     * @param \Rapicart\CustomerCommands\Model\AddressValidationRules $validationRules
+     * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
+     * @param \Magento\Customer\Api\AddressRepositoryInterface $addressRepository
+     * @param \Magento\Customer\Api\Data\AddressInterfaceFactory $addressFactory
+     * @param \Magento\Framework\App\State $appState
+     */
     public function __construct(
         \Rapicart\CustomerCommands\Model\AddressValidationRules $validationRules,
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
         \Magento\Customer\Api\AddressRepositoryInterface $addressRepository,
         \Magento\Customer\Api\Data\AddressInterfaceFactory $addressFactory,
-        //\Magento\Framework\Encryption\Encryptor $encryptor,
         \Magento\Framework\App\State $appState
     ) {
         parent::__construct();
@@ -49,7 +57,6 @@ class CustomerAddressListCommand extends Command
         $this->customerRepository = $customerRepository;
         $this->addressRepository = $addressRepository;
         $this->addressFactory = $addressFactory;
-        //$this->encryptor = $encryptor;
 
         try {
             $appState->setAreaCode('adminhtml');
@@ -65,7 +72,7 @@ class CustomerAddressListCommand extends Command
     protected function configure()
     {
         $this->setName('customer:address:list')
-            ->setDescription('Create or update a customer address account')
+            ->setDescription('Displays the list of customer addresses')
             ->setDefinition($this->getOptionsList());
     }
 
@@ -77,10 +84,7 @@ class CustomerAddressListCommand extends Command
     {
         return [
             new InputOption(self::KEY_EMAIL, null, InputOption::VALUE_REQUIRED, '(Required) Customer email'),
-//            new InputOption(self::KEY_FIRSTNAME, null, InputOption::VALUE_REQUIRED, '(Required) Customer first name'),
-//            new InputOption(self::KEY_LASTNAME, null, InputOption::VALUE_REQUIRED, '(Required) Customer last name'),
-
-//            new InputOption(self::KEY_PASSWORD, null, InputOption::VALUE_REQUIRED, '(Required) Customer password')
+            new InputOption(self::KEY_WEBSITE_ID, null, InputOption::VALUE_OPTIONAL, '(Optional) Customer website id')
         ];
     }
 
@@ -93,9 +97,10 @@ class CustomerAddressListCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $email = $input->getOption(self::KEY_EMAIL);
+        $websiteId = $input->getOption(self::KEY_WEBSITE_ID);
 
         try {
-            $customer = $this->customerRepository->get($email);
+            $customer = $this->customerRepository->get($email, $websiteId);
 
             $table = $this->getHelperSet()->get('table');
             $table->setHeaders(['Id', 'First Name', 'Last Name', 'Street', 'City', 'Region', 'Country', 'ZipCode', 'Phone']);
@@ -116,14 +121,6 @@ class CustomerAddressListCommand extends Command
 
             $table->render($output);
 
-//            foreach ($customer->getAddresses() as $address) {
-//                $output->writeln($address->getFirstname());
-//
-//                //var_dump($address->getCustomAttribute('celular'));
-//                foreach ($address->getCustomAttributes() as $attribute) {
-//                    var_dump($attribute->getAttributeCode());
-//                }
-//            }
             return \Magento\Framework\Console\Cli::RETURN_SUCCESS;
         } catch (\Exception $e) {
             $output->writeln(

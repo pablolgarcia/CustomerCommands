@@ -12,6 +12,7 @@
                 <item name="customerGroupDeleteCommand" xsi:type="object">Rapicart\CustomerCommands\Console\Command\CustomerGroupDeleteCommand</item>
                 <item name="customerAddressListCommand" xsi:type="object">Rapicart\CustomerCommands\Console\Command\CustomerAddressListCommand</item>
                 <item name="customerAddressDeleteCommand" xsi:type="object">Rapicart\CustomerCommands\Console\Command\CustomerAddressDeleteCommand</item>
+                <item name="customerAddressCreateCommand" xsi:type="object">Rapicart\CustomerCommands\Console\Command\CustomerAddressCreateCommand</item>
             </argument>
         </arguments>
     </type>

@@ -39,12 +39,19 @@ class CustomerAddressCreateCommand extends Command
     /** @var \Magento\Customer\Api\Data\AddressInterfaceFactory  */
     protected $addressFactory;
 
+    /**
+     * CustomerAddressCreateCommand constructor.
+     * @param \Rapicart\CustomerCommands\Model\AddressValidationRules $validationRules
+     * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
+     * @param \Magento\Customer\Api\AddressRepositoryInterface $addressRepository
+     * @param \Magento\Customer\Api\Data\AddressInterfaceFactory $addressFactory
+     * @param \Magento\Framework\App\State $appState
+     */
     public function __construct(
         \Rapicart\CustomerCommands\Model\AddressValidationRules $validationRules,
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
         \Magento\Customer\Api\AddressRepositoryInterface $addressRepository,
         \Magento\Customer\Api\Data\AddressInterfaceFactory $addressFactory,
-        //\Magento\Framework\Encryption\Encryptor $encryptor,
         \Magento\Framework\App\State $appState
     ) {
         parent::__construct();
@@ -52,7 +59,6 @@ class CustomerAddressCreateCommand extends Command
         $this->customerRepository = $customerRepository;
         $this->addressRepository = $addressRepository;
         $this->addressFactory = $addressFactory;
-        //$this->encryptor = $encryptor;
 
         try {
             $appState->setAreaCode('adminhtml');
@@ -68,7 +74,7 @@ class CustomerAddressCreateCommand extends Command
     protected function configure()
     {
         $this->setName('customer:address:create')
-            ->setDescription('Create or update a customer address account')
+            ->setDescription('(Not Implemented yet) Create or update a customer address account')
             ->setDefinition($this->getOptionsList());
     }
 
@@ -83,8 +89,6 @@ class CustomerAddressCreateCommand extends Command
             new InputOption(self::KEY_ADDRESS_ID, null, InputOption::VALUE_REQUIRED, '(Required for editing) Address id'),
             new InputOption(self::KEY_FIRSTNAME, null, InputOption::VALUE_REQUIRED, '(Required) Customer first name'),
             new InputOption(self::KEY_LASTNAME, null, InputOption::VALUE_REQUIRED, '(Required) Customer last name'),
-
-//            new InputOption(self::KEY_PASSWORD, null, InputOption::VALUE_REQUIRED, '(Required) Customer password')
         ];
     }
 
@@ -96,6 +100,9 @@ class CustomerAddressCreateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $output->writeln("Command not implemented yet.");
+        return \Magento\Framework\Console\Cli::RETURN_SUCCESS;
+
         $errors = $this->validate($input);
         if ($errors) {
             $output->writeln('<error>' . implode('</error>' . PHP_EOL .  '<error>', $errors) . '</error>');

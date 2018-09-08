@@ -31,7 +31,12 @@ class CustomerInfoCommand extends Command
     /** @var \Magento\Customer\Api\CustomerRepositoryInterface  */
     protected $customerRepository;
 
-
+    /**
+     * CustomerInfoCommand constructor.
+     * @param \Rapicart\CustomerCommands\Model\CustomerValidationRules $validationRules
+     * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
+     * @param \Magento\Framework\App\State $appState
+     */
     public function __construct(
         \Rapicart\CustomerCommands\Model\CustomerValidationRules $validationRules,
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
@@ -67,7 +72,7 @@ class CustomerInfoCommand extends Command
     {
         return [
             new InputOption(self::KEY_EMAIL, null, InputOption::VALUE_REQUIRED, '(Required) Customer email'),
-            new InputOption(self::KEY_WEBSITE_ID, null, InputOption::VALUE_REQUIRED, '(Optional) Customer website id')
+            new InputOption(self::KEY_WEBSITE_ID, null, InputOption::VALUE_OPTIONAL, '(Optional) Customer website id')
         ];
     }
 
