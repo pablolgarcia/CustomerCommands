@@ -1,11 +1,21 @@
 # Customer commands for Magento2 - by Rapicart
 ## Introduction
-This module is mainly aimed for sysadmins who want to manage customer accounts by command line.
+Magento 2 commands are a powerful tool and a fast way to manage our projects on our daily running.
+This is why we decided to create this module, extending the out-of-the-box magento commands, providing
+to the user with helpful commands to manage customer accounts.
+This module is mainly aimed for sysadmins and devs who want to manage customer accounts by command line.
 
-Still under development.
+**Note:** This extension is still under development. Feel free to contact us for issues or suggestions.
+
 ## Installation
+You need to install it using composer. Go to your web root directory and type:
 ```
 composer require "rapicart/customer-commands":"@dev"
+```
+Then you need to run the next commands:
+```
+php bin/magento module:enable Rapicart_CustomerCommands
+php bin/magento setup:upgrade
 ```
 
 ## Available commands
