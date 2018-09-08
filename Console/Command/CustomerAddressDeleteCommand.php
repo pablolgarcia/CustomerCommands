@@ -6,7 +6,7 @@
  * User: Pablo Garcia
  * Email: pablo.garcia@rapicart.com
  * Date: 07/09/18
- * Time: 14:35
+ * Time: 21:20
  */
 
 namespace Rapicart\CustomerCommands\Console\Command;
@@ -17,27 +17,22 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Command for deleting a customer groups.
+ * Command for deleting a customer address.
  */
-class CustomerGroupDeleteCommand extends Command
+class CustomerAddressDeleteCommand extends Command
 {
     /** data keys */
-    const KEY_CUSTOMER_GROUP_ID = 'customer-group-id';
+    const KEY_ADDRESS_ID = 'address-id';
 
-    /** @var \Magento\Customer\Api\GroupRepositoryInterface  */
-    protected $groupRepository;
+    /** @var \Magento\Customer\Api\AddressRepositoryInterface  */
+    protected $addressRepository;
 
-    /**
-     * CustomerGroupDeleteCommand constructor.
-     * @param \Magento\Customer\Api\GroupRepositoryInterface $groupRepository
-     * @param \Magento\Framework\App\State $appState
-     */
     public function __construct(
-        \Magento\Customer\Api\GroupRepositoryInterface $groupRepository,
+        \Magento\Customer\Api\AddressRepositoryInterface $addressRepository,
         \Magento\Framework\App\State $appState
     ) {
         parent::__construct();
-        $this->groupRepository = $groupRepository;
+        $this->addressRepository = $addressRepository;
 
         try {
             $appState->setAreaCode('adminhtml');
@@ -52,8 +47,8 @@ class CustomerGroupDeleteCommand extends Command
      */
     protected function configure()
     {
-        $this->setName('customer:group:delete')
-            ->setDescription('Delete a customer group')
+        $this->setName('customer:address:delete')
+            ->setDescription('Delete a customer address')
             ->setDefinition($this->getOptionsList());
     }
 
@@ -64,7 +59,7 @@ class CustomerGroupDeleteCommand extends Command
     private function getOptionsList()
     {
         return [
-            new InputOption(self::KEY_CUSTOMER_GROUP_ID, null, InputOption::VALUE_REQUIRED, '(Required) Customer group id'),
+            new InputOption(self::KEY_ADDRESS_ID, null, InputOption::VALUE_REQUIRED, '(Required) Address id'),
         ];
     }
 
@@ -77,20 +72,20 @@ class CustomerGroupDeleteCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         try {
-            $customerGroupId = $input->getOption(self::KEY_CUSTOMER_GROUP_ID);
+            $customerAddressId = $input->getOption(self::KEY_ADDRESS_ID);
 
-            if(!$customerGroupId) {
-                $output->writeln('<error>Customer group id is a required field.</error>');
+            if(!$customerAddressId) {
+                $output->writeln('<error>Customer Address id is a required field.</error>');
                 return \Magento\Framework\Console\Cli::RETURN_FAILURE;
             }
 
-            $this->groupRepository->deleteById($customerGroupId);
+            $this->addressRepository->deleteById($customerAddressId);
 
-            $output->writeln('Customer group has been deleted.');
+            $output->writeln('Customer address has been deleted.');
 
             return \Magento\Framework\Console\Cli::RETURN_SUCCESS;
         } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
-            $output->writeln('<error>There isn\'t a customer group for the given id</error>');
+            $output->writeln('<error>There isn\'t a customer address for the given id</error>');
 
         } catch (\Exception $e) {
             $output->writeln(

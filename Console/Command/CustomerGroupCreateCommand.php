@@ -114,11 +114,8 @@ class CustomerGroupCreateCommand extends Command
             $groupSearchResults = $this->groupRepository->getList($searchCriteria);
 
             if($groupSearchResults->getTotalCount()) {
-                $output->writeln(
-                    sprintf("<error>%s</error>",
-                        "Already exists a group for the given group name."
-                    )
-                );
+                $output->writeln("<error>Already exists a group for the given group name.</error>");
+
                 return \Magento\Framework\Console\Cli::RETURN_FAILURE;
             }
 
@@ -129,10 +126,15 @@ class CustomerGroupCreateCommand extends Command
 
             $this->groupRepository->save($customerGroup);
 
-            $output->writeln($successMessage);
+            $output->writeln("<info>$successMessage</info>");
             return \Magento\Framework\Console\Cli::RETURN_SUCCESS;
         } catch (\Exception $e) {
-            $output->writeln('An error has occurred: ' . $e->getMessage());
+            $output->writeln(
+                sprintf(
+                    "<error>An error has occurred: %s</error>",
+                    $e->getMessage()
+                )
+            );
             return \Magento\Framework\Console\Cli::RETURN_FAILURE;
         }
     }

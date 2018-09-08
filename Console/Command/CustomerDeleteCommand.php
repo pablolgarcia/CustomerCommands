@@ -5,8 +5,8 @@
  * Web: https://www.rapicart.com
  * User: Pablo Garcia
  * Email: pablo.garcia@rapicart.com
- * Date: 04/09/18
- * Time: 15:03
+ * Date: 07/09/18
+ * Time: 15:34
  */
 
 namespace Rapicart\CustomerCommands\Console\Command;
@@ -17,15 +17,13 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Command for creating or updating a customer account.
+ * Command for deleting a customer account.
  */
-class CustomerCreateCommand extends Command
+class CustomerDeleteCommand extends Command
 {
     /** data keys */
-    const KEY_FIRSTNAME = 'customer-firstname';
-    const KEY_LASTNAME = 'customer-lastname';
     const KEY_EMAIL = 'customer-email';
-    const KEY_PASSWORD = 'customer-password';
+    const KEY_WEBSITE_ID = 'customer-website-id';
 
     /** @var \Rapicart\CustomerCommands\Model\CustomerValidationRules  */
     protected $validationRules;
@@ -33,33 +31,25 @@ class CustomerCreateCommand extends Command
     /** @var \Magento\Customer\Api\CustomerRepositoryInterface  */
     protected $customerRepository;
 
-    /** @var \Magento\Customer\Api\Data\CustomerInterfaceFactory  */
-    protected $customerFactory;
-
-    /** @var \Magento\Framework\Encryption\Encryptor  */
-    protected $encryptor;
-
     /**
-     * CustomerCreateCommand constructor.
+     * CustomerDeleteCommand constructor.
      * @param \Rapicart\CustomerCommands\Model\CustomerValidationRules $validationRules
      * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
-     * @param \Magento\Framework\Encryption\Encryptor $encryptor
      * @param \Magento\Framework\App\State $appState
+     * @param \Magento\Framework\Registry $registry
      */
     public function __construct(
         \Rapicart\CustomerCommands\Model\CustomerValidationRules $validationRules,
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
-        \Magento\Customer\Api\Data\CustomerInterfaceFactory $customerFactory,
-        \Magento\Framework\Encryption\Encryptor $encryptor,
-        \Magento\Framework\App\State $appState
+        \Magento\Framework\App\State $appState,
+        \Magento\Framework\Registry $registry
     ) {
         parent::__construct();
         $this->validationRules = $validationRules;
         $this->customerRepository = $customerRepository;
-        $this->customerFactory = $customerFactory;
-        $this->encryptor = $encryptor;
 
         try {
+            $registry->register('isSecureArea', true); //secureArea true is necessary to able to delete customers.
             $appState->setAreaCode('adminhtml');
         } catch(\Magento\Framework\Exception\LocalizedException $e) {
             ;
@@ -72,8 +62,8 @@ class CustomerCreateCommand extends Command
      */
     protected function configure()
     {
-        $this->setName('customer:create')
-            ->setDescription('Create or update a customer account')
+        $this->setName('customer:delete')
+            ->setDescription('Delete a customer account')
             ->setDefinition($this->getOptionsList());
     }
 
@@ -84,10 +74,8 @@ class CustomerCreateCommand extends Command
     private function getOptionsList()
     {
         return [
-            new InputOption(self::KEY_FIRSTNAME, null, InputOption::VALUE_REQUIRED, '(Required) Customer first name'),
-            new InputOption(self::KEY_LASTNAME, null, InputOption::VALUE_REQUIRED, '(Required) Customer last name'),
             new InputOption(self::KEY_EMAIL, null, InputOption::VALUE_REQUIRED, '(Required) Customer email'),
-            new InputOption(self::KEY_PASSWORD, null, InputOption::VALUE_REQUIRED, '(Required) Customer password')
+            new InputOption(self::KEY_WEBSITE_ID, null, InputOption::VALUE_OPTIONAL, '(Optional) Customer website id')
         ];
     }
 
@@ -107,22 +95,17 @@ class CustomerCreateCommand extends Command
         }
 
         $email = $input->getOption(self::KEY_EMAIL);
-        $password = $input->getOption(self::KEY_PASSWORD);
-
-        $successMessage = 'Customer account has been created.';
+        $websiteId = $input->getOption(self::KEY_WEBSITE_ID);
 
         try {
-            $customer = $this->customerRepository->get($email);
-            $successMessage = 'Customer account has been updated.';
-        } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
-            $customer = $this->customerFactory->create();
-        }
+            $customer = $this->customerRepository->get($email, $websiteId);
+            $this->customerRepository->deleteById($customer->getId());
 
-        try {
-            $this->setCustomerData($customer, $input);
-            $this->customerRepository->save($customer, $this->encryptor->getHash($password, true));
-            $output->writeln("<info>$successMessage<info>");
+            $output->writeln('<info>Customer has been deleted.</info>');
+
             return \Magento\Framework\Console\Cli::RETURN_SUCCESS;
+        } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+            $output->writeln('<error>There isn\'t a customer for the given email.</error>');
         } catch (\Exception $e) {
             $output->writeln(
                 sprintf(
@@ -131,23 +114,8 @@ class CustomerCreateCommand extends Command
                 )
             );
 
-            return \Magento\Framework\Console\Cli::RETURN_FAILURE;
         }
-
-    }
-
-    /**
-     * Set input data to customer entity
-     * @param \Magento\Customer\Api\Data\CustomerInterface $customer
-     * @param InputInterface $input
-     */
-    private function setCustomerData($customer, InputInterface $input)
-    {
-        foreach ($input->getOptions() as $key => $value) {
-            if ($key == 'customer-password' || substr($key, 0,8) != 'customer' || $value == '') continue;
-            $key = substr($key, 9);
-            $customer->{"set$key"}($value);
-        }
+        return \Magento\Framework\Console\Cli::RETURN_FAILURE;
     }
 
     /**
@@ -159,12 +127,10 @@ class CustomerCreateCommand extends Command
     {
         $errors = [];
         $data = new \Magento\Framework\DataObject();
-        $data->setEmail($input->getOption(self::KEY_EMAIL))
-            ->setPassword($input->getOption(self::KEY_PASSWORD));
+        $data->setEmail($input->getOption(self::KEY_EMAIL));
 
         $validator = new \Magento\Framework\Validator\DataObject;
         $this->validationRules->addEmailRules($validator);
-        $this->validationRules->addPasswordRules($validator);
 
         if (!$validator->isValid($data)) {
             $errors = array_merge($errors, $validator->getMessages());

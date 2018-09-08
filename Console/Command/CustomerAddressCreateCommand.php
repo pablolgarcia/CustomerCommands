@@ -5,8 +5,8 @@
  * Web: https://www.rapicart.com
  * User: Pablo Garcia
  * Email: pablo.garcia@rapicart.com
- * Date: 04/09/18
- * Time: 15:03
+ * Date: 07/09/18
+ * Time: 15:31
  */
 
 namespace Rapicart\CustomerCommands\Console\Command;
@@ -19,45 +19,40 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Command for creating or updating a customer account.
  */
-class CustomerCreateCommand extends Command
+class CustomerAddressCreateCommand extends Command
 {
     /** data keys */
-    const KEY_FIRSTNAME = 'customer-firstname';
-    const KEY_LASTNAME = 'customer-lastname';
     const KEY_EMAIL = 'customer-email';
-    const KEY_PASSWORD = 'customer-password';
+    const KEY_ADDRESS_ID = 'address-id';
+    const KEY_FIRSTNAME = 'address-firstname';
+    const KEY_LASTNAME = 'address-lastname';
 
-    /** @var \Rapicart\CustomerCommands\Model\CustomerValidationRules  */
+    /** @var \Rapicart\CustomerCommands\Model\AddressValidationRules  */
     protected $validationRules;
 
     /** @var \Magento\Customer\Api\CustomerRepositoryInterface  */
     protected $customerRepository;
 
-    /** @var \Magento\Customer\Api\Data\CustomerInterfaceFactory  */
-    protected $customerFactory;
+    /** @var \Magento\Customer\Api\AddressRepositoryInterface  */
+    protected $addressRepository;
 
-    /** @var \Magento\Framework\Encryption\Encryptor  */
-    protected $encryptor;
+    /** @var \Magento\Customer\Api\Data\AddressInterfaceFactory  */
+    protected $addressFactory;
 
-    /**
-     * CustomerCreateCommand constructor.
-     * @param \Rapicart\CustomerCommands\Model\CustomerValidationRules $validationRules
-     * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
-     * @param \Magento\Framework\Encryption\Encryptor $encryptor
-     * @param \Magento\Framework\App\State $appState
-     */
     public function __construct(
-        \Rapicart\CustomerCommands\Model\CustomerValidationRules $validationRules,
+        \Rapicart\CustomerCommands\Model\AddressValidationRules $validationRules,
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
-        \Magento\Customer\Api\Data\CustomerInterfaceFactory $customerFactory,
-        \Magento\Framework\Encryption\Encryptor $encryptor,
+        \Magento\Customer\Api\AddressRepositoryInterface $addressRepository,
+        \Magento\Customer\Api\Data\AddressInterfaceFactory $addressFactory,
+        //\Magento\Framework\Encryption\Encryptor $encryptor,
         \Magento\Framework\App\State $appState
     ) {
         parent::__construct();
         $this->validationRules = $validationRules;
         $this->customerRepository = $customerRepository;
-        $this->customerFactory = $customerFactory;
-        $this->encryptor = $encryptor;
+        $this->addressRepository = $addressRepository;
+        $this->addressFactory = $addressFactory;
+        //$this->encryptor = $encryptor;
 
         try {
             $appState->setAreaCode('adminhtml');
@@ -72,8 +67,8 @@ class CustomerCreateCommand extends Command
      */
     protected function configure()
     {
-        $this->setName('customer:create')
-            ->setDescription('Create or update a customer account')
+        $this->setName('customer:address:create')
+            ->setDescription('Create or update a customer address account')
             ->setDefinition($this->getOptionsList());
     }
 
@@ -84,10 +79,12 @@ class CustomerCreateCommand extends Command
     private function getOptionsList()
     {
         return [
+            new InputOption(self::KEY_EMAIL, null, InputOption::VALUE_REQUIRED, '(Required) Customer email'),
+            new InputOption(self::KEY_ADDRESS_ID, null, InputOption::VALUE_REQUIRED, '(Required for editing) Address id'),
             new InputOption(self::KEY_FIRSTNAME, null, InputOption::VALUE_REQUIRED, '(Required) Customer first name'),
             new InputOption(self::KEY_LASTNAME, null, InputOption::VALUE_REQUIRED, '(Required) Customer last name'),
-            new InputOption(self::KEY_EMAIL, null, InputOption::VALUE_REQUIRED, '(Required) Customer email'),
-            new InputOption(self::KEY_PASSWORD, null, InputOption::VALUE_REQUIRED, '(Required) Customer password')
+
+//            new InputOption(self::KEY_PASSWORD, null, InputOption::VALUE_REQUIRED, '(Required) Customer password')
         ];
     }
 
@@ -107,20 +104,30 @@ class CustomerCreateCommand extends Command
         }
 
         $email = $input->getOption(self::KEY_EMAIL);
-        $password = $input->getOption(self::KEY_PASSWORD);
+        $addressId = $input->getOption(self::KEY_ADDRESS_ID);
 
         $successMessage = 'Customer account has been created.';
 
         try {
             $customer = $this->customerRepository->get($email);
-            $successMessage = 'Customer account has been updated.';
+
+            $successMessage = 'Customer address has been updated.';
         } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
-            $customer = $this->customerFactory->create();
+            $output->writeln('<error>There isn\'t a customer for the given email.</error>');
+            return \Magento\Framework\Console\Cli::RETURN_FAILURE;
+        }
+
+
+        if ($addressId) {
+            $address = $this->addressRepository->getById($addressId);
+        } else {
+            $address = $this->addressFactory->create();
+            $address->setCustomerId($customer->getId());
         }
 
         try {
-            $this->setCustomerData($customer, $input);
-            $this->customerRepository->save($customer, $this->encryptor->getHash($password, true));
+            $this->setAddressData($address, $input);
+            $this->addressRepository->save($address);
             $output->writeln("<info>$successMessage<info>");
             return \Magento\Framework\Console\Cli::RETURN_SUCCESS;
         } catch (\Exception $e) {
@@ -136,17 +143,12 @@ class CustomerCreateCommand extends Command
 
     }
 
-    /**
-     * Set input data to customer entity
-     * @param \Magento\Customer\Api\Data\CustomerInterface $customer
-     * @param InputInterface $input
-     */
-    private function setCustomerData($customer, InputInterface $input)
+    private function setAddressData($address, InputInterface $input)
     {
         foreach ($input->getOptions() as $key => $value) {
-            if ($key == 'customer-password' || substr($key, 0,8) != 'customer' || $value == '') continue;
+            if (substr($key, 0,8) != 'customer' || substr($key, 0,8) != 'address' ||$value == '') continue;
             $key = substr($key, 9);
-            $customer->{"set$key"}($value);
+            $address->{"set$key"}($value);
         }
     }
 
@@ -158,17 +160,16 @@ class CustomerCreateCommand extends Command
     public function validate(InputInterface $input)
     {
         $errors = [];
-        $data = new \Magento\Framework\DataObject();
-        $data->setEmail($input->getOption(self::KEY_EMAIL))
-            ->setPassword($input->getOption(self::KEY_PASSWORD));
-
-        $validator = new \Magento\Framework\Validator\DataObject;
-        $this->validationRules->addEmailRules($validator);
-        $this->validationRules->addPasswordRules($validator);
-
-        if (!$validator->isValid($data)) {
-            $errors = array_merge($errors, $validator->getMessages());
-        }
+//        $data = new \Magento\Framework\DataObject();
+//        $data->setEmail($input->getOption(self::KEY_EMAIL))
+//            ->setPassword($input->getOption(self::KEY_PASSWORD));
+//
+//        $validator = new \Magento\Framework\Validator\DataObject;
+//        $this->validationRules->addAddressInfoRules($validator);
+//
+//        if (!$validator->isValid($data)) {
+//            $errors = array_merge($errors, $validator->getMessages());
+//        }
 
         return $errors;
     }
